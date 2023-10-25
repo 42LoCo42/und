@@ -24,7 +24,12 @@
               program = "${pkgs.substituteAll {
                 src = ./und.sh;
                 inherit name flake;
-                inherit (args) user host preUser kexec;
+
+                user = args.user or "";
+                host = args.host or "";
+                preUser = args.preUser or "";
+                kexec = args.kexec or "";
+
                 ssh = "${pkgs.openssh}/bin/ssh";
               }}";
             }))
