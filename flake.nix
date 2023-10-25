@@ -55,6 +55,9 @@
                   --no-root-password \
                   --flake "${self}#${name}")
 
+                info "Exporting all ZFS pools"
+                (set -x; ssh -t "${kexecConn}" zpool export -a)
+
                 info "Rebooting"
                 (set -x; ssh -t "${kexecConn}" reboot)
               ''}";
