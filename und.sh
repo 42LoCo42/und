@@ -79,6 +79,9 @@ main() {
 	else
 		if ((LOCAL)); then
 			info "Updating $name locally"
+
+			info "Building configuration"
+			x sudo nixos-rebuild switch -L --flake "$flake"
 		else
 			info "Updating $name on $conn"
 			uploadFlake "$conn"
