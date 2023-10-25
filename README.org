@@ -1,0 +1,51 @@
+* und - micro nix deployer
+Inspired by [[https://github.com/numtide/nixos-anywhere][nixos-anywhere]] and [[https://github.com/MatthewCroughan/nixinate][nixinate]], this tool enables you to install and update
+a NixOS configuration on any system with SSH and root access and some basic tools.
+
+** Usage
+#+begin_src nix
+  {
+    inputs = {
+      # the installation uses disko to prepare the disks
+      disko.inputs.nixpkgs.follows = "nixpkgs";
+
+      und.url = "github:42loco42/und";
+    };
+
+    outputs = { self, nixpkgs, ... }: {
+      apps = self.inputs.und.und self;
+      nixosConfigurations = {
+        test = {
+          system = "x86_64-linux";
+          modules = [
+            ./disk.nix # disko configuration
+
+            {
+              _module.args.und = {
+                host = "example.org";
+                user = "foobar";
+
+                # set this option if the user on the old system (which will be overwritten)
+                # is different from your normal user
+                # preUser = "barbaz";
+
+                # set this option to use a custom kexec tarbarll URL
+                # otherwise, the default tarball from https://github.com/nix-community/nixos-anywhere will be used
+                # kexec = "https://example.org/other-kexec.tar.gz"
+              };
+            }
+          ];
+        };
+      };
+    };
+  }
+#+end_src
+
+#+begin_src shell
+  nix run .#test-install # to install (overwrites the old system)
+  nix run .#test # to update a running system
+#+end_src
+
+** Notes
+- all builds happen on the remote system to allow installing to different architectures
+- all SSH connections have a PTY, so you can enter passwords
