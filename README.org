@@ -18,7 +18,9 @@ a NixOS configuration on any system with SSH and root access and some basic tool
         test = {
           system = "x86_64-linux";
           modules = [
-            ./disk.nix # disko configuration
+            ./disk.nix # disko config file
+
+            self.inputs.disko.nixosModules.disko
 
             {
               _module.args.und = {
