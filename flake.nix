@@ -27,6 +27,10 @@
                 info() { echo "[32;1m$*[m"; }
                 info "Installing ${name} on ${preConn}"
 
+                info "Placing marker file"
+                file="$(mktemp -p /dev/shm -t und.XXXXXXXX)"
+                (set -x; ssh -t "${preConn}" touch "$file")
+
                 info "Downloading kexec tarball"
                 (set -x; ssh -t "${preConn}" curl -fLOz "$(basename "${kexec}")" "${kexec}")
 
@@ -37,9 +41,8 @@
                 (set -x; ssh -t "${preConn}" sudo ./kexec/run)
 
                 info "Waiting for machine to reboot"
-                sleep 5
                 while sleep 5; do
-                  (set -x; ssh -o ConnectTimeout=5 "${kexecConn}" test -f /etc/NIXOS) && break || true
+                  (set -x; ssh -o ConnectTimeout=5 "${kexecConn}" test ! -f "$file") && break || true
                   info "Still waiting"
                 done
 
