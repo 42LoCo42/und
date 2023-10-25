@@ -40,10 +40,10 @@
                 sleep 5
                 while sleep 5; do
                   (set -x; ssh -o ConnectTimeout=5 "${kexecConn}" test -f /etc/NIXOS) && break || true
-                  echo "Still waiting"
+                  info "Still waiting"
                 done
 
-                info "Uploading flake..."
+                info "Uploading flake"
                 (set -x; nix copy "${self}" --to "ssh://${kexecConn}")
 
                 info "Formatting disks"
@@ -54,6 +54,9 @@
                   --no-channel-copy \
                   --no-root-password \
                   --flake "${self}#${name}")
+
+                info "Rebooting"
+                (set -x; ssh -t "${kexecConn}" reboot)
               ''}";
             };
             "${name}" = {
@@ -63,10 +66,10 @@
                 info() { echo "[32;1m$*[m"; }
                 info "Updating ${name} on ${conn}"
 
-                info "Uploading flake..."
+                info "Uploading flake"
                 (set -x; nix copy "${self}" --to "ssh://${conn}")
 
-                info "Building configuration..."
+                info "Building configuration"
                 (set -x; ssh -t "${conn}" sudo nixos-rebuild switch -L --flake "${self}")
               ''}";
             };
