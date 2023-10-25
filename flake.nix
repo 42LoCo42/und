@@ -29,7 +29,7 @@
 
                     user = args.user or "";
                     host = args.host or "";
-                    preUser = args.preUser or "";
+                    preUser = args.preUser or args.user or "";
                     kexec = args.kexec or "";
                   });
               }}/bin/und-${name}";
