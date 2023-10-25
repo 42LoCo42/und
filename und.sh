@@ -130,16 +130,16 @@ formatDisks() {
 	((NO_FORMAT)) && return
 
 	info "Formatting disks"
-	cmd=(
-		nix
-		--extra-experimental-features
-		"'nix-command flakes'"
-		run disko --
-		-m disko
-		-f "$config"
-	)
-	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[*]}")
-	x echo "${cmd[@]}"
+	cmd=(nix --extra-experimental-features)
+	if ((LOCAL)); then
+		cmd=("${cmd[@]}" "nix-command flakes")
+	else
+		# double layer quotation for SSH
+		cmd=("${cmd[@]}" "'nix-command flakes'")
+	fi
+	cmd=("${cmd[@]}" run disko -- -m disko -f "$config")
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+	x "${cmd[@]}"
 }
 
 runInstallation() {
