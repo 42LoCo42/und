@@ -48,6 +48,14 @@ a NixOS configuration on any system with SSH and root access and some basic tool
   nix run .#test # to update a running system
 #+end_src
 
+** Options for the installer
+When running a ~<name>-install~ script, you can specify some options:
+- ~--no-format~: don't format the disks
+- ~--no-kexec~: don't perform the kexec steps (e.g. for when you already have NixOS live system)
+- ~--no-reboot~: don't reboot after the installation has finished
+- ~--save-hwconf <path>~: generate & save a hardware configuration file to ~<path>~.
+  The script will then pause to allow further edits and actions.
+
 ** Notes
 - all builds happen on the remote system to allow installing to different architectures
 - all SSH connections have a PTY, so you can enter passwords
