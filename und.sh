@@ -65,6 +65,9 @@ main() {
 	if ((INSTALL)); then
 		if ((LOCAL)); then
 			info "Installing $name locally"
+			saveHWConf
+			formatDisks
+			runInstallation
 		else
 			info "Installing $name on $preConn"
 			runKexec
@@ -144,18 +147,21 @@ formatDisks() {
 
 runInstallation() {
 	info "Installing the system"
-	x ssh -t "$kexecConn" nixos-install -v \
-		--no-channel-copy \
-		--no-root-password \
-		--flake "$config"
+	cmd=(nixos-install -v --no-channel-copy --no-root-password --flake "$config")
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+	x "${cmd[@]}"
 
 	info "Exporting all ZFS pools"
-	x ssh -t "$kexecConn" zpool export -a
+	cmd=(zpool export -a)
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+	x "${cmd[@]}"
 
 	((NO_REBOOT)) && return
 
 	info "Rebooting"
-	x ssh -t "$kexecConn" reboot
+	cmd=(reboot)
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+	x "${cmd[@]}"
 }
 
 main
