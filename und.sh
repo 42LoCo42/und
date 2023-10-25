@@ -69,7 +69,7 @@ main() {
 			info "Installing $name on $preConn"
 			runKexec
 			saveHWConf
-			uploadFlake
+			uploadFlake "$preConn"
 			formatDisks
 			runInstallation
 		fi
@@ -78,7 +78,7 @@ main() {
 			info "Updating $name locally"
 		else
 			info "Updating $name on $conn"
-			uploadFlake
+			uploadFlake "$conn"
 
 			info "Building configuration"
 			x ssh -t "$conn" sudo nixos-rebuild switch -L --flake "$flake"
@@ -123,7 +123,7 @@ saveHWConf() {
 
 uploadFlake() {
 	info "Uploading flake"
-	x nix copy "$flake" --to "ssh://$kexecConn"
+	x nix copy "$flake" --to "ssh://$1"
 }
 
 formatDisks() {
