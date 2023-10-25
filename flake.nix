@@ -18,20 +18,25 @@
               pkgs = import flake.inputs.nixpkgs { inherit system; };
               conf = flake.nixosConfigurations.${name};
               args = conf._module.args.und;
+
+              program = "${pkgs.writeShellApplication {
+                name = "und-${name}";
+                runtimeInputs = with pkgs; [ openssh ];
+                text = builtins.readFile
+                  (pkgs.substituteAll {
+                    src = ./und.sh;
+                    inherit name flake;
+
+                    user = args.user or "";
+                    host = args.host or "";
+                    preUser = args.preUser or "";
+                    kexec = args.kexec or "";
+                  });
+              }}/bin/und-${name}";
             in
             {
               type = "app";
-              program = "${pkgs.substituteAll {
-                src = ./und.sh;
-                inherit name flake;
-
-                user = args.user or "";
-                host = args.host or "";
-                preUser = args.preUser or "";
-                kexec = args.kexec or "";
-
-                ssh = "${pkgs.openssh}/bin/ssh";
-              }}";
+              inherit program;
             }))
         ]) [ "x86_64-linux" "aarch64-linux" ];
   };

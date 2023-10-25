@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set +o nounset # we want unset variables
 
 # import variables from nix
 
@@ -11,8 +11,6 @@ user="@user@"
 host="@host@"
 preUser="@preUser@"
 kexec="@kexec@"
-
-ssh="@ssh@"
 
 info() {
 	echo "[32;1m$*[m"
@@ -83,7 +81,7 @@ main() {
 			uploadFlake
 
 			info "Building configuration"
-			x "$ssh" -t "$conn" sudo nixos-rebuild switch -L --flake "$flake"
+			x ssh -t "$conn" sudo nixos-rebuild switch -L --flake "$flake"
 		fi
 	fi
 }
@@ -93,20 +91,20 @@ runKexec() {
 
 	info "Placing marker file"
 	file="$(mktemp -p /dev/shm -t und.XXXXXXXX)"
-	x "$ssh" -t "$preConn" touch "$file"
+	x ssh -t "$preConn" touch "$file"
 
 	info "Downloading kexec tarball"
-	x "$ssh" -t "$preConn" curl -fLOz "$(basename "$kexec")" "$kexec"
+	x ssh -t "$preConn" curl -fLOz "$(basename "$kexec")" "$kexec"
 
 	info "Unpacking kexec tarbarll"
-	x "$ssh" -t "$preConn" tar xvf "$(basename "${kexec}")"
+	x ssh -t "$preConn" tar xvf "$(basename "${kexec}")"
 
 	info "Running kexec"
-	x "$ssh" -t "$preConn" sudo ./kexec/run
+	x ssh -t "$preConn" sudo ./kexec/run
 
 	info "Waiting for machine to reboot"
 	while sleep 5; do
-		if x "$ssh" -o ConnectTimeout=5 "$kexecConn" test ! -f "$file"; then break; fi
+		if x ssh -o ConnectTimeout=5 "$kexecConn" test ! -f "$file"; then break; fi
 		info "Still waiting"
 	done
 }
@@ -116,7 +114,7 @@ saveHWConf() {
 
 	info "Saving hardware configuration to $SAVE_HWCONF"
 	cmd=(sudo nixos-generate-config --show-hardware-config --no-filesystems)
-	((LOCAL)) || cmd=("$ssh" "$kexecConn" "${cmd[@]}")
+	((LOCAL)) || cmd=(ssh "$kexecConn" "${cmd[@]}")
 	x "${cmd[@]}" | tee "$SAVE_HWCONF"
 
 	info "You can now edit the hardware configuration!"
@@ -140,24 +138,24 @@ formatDisks() {
 		-m disko
 		-f "$config"
 	)
-	((LOCAL)) || cmd=("$ssh" -t "$kexecConn" "${cmd[*]}")
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[*]}")
 	x echo "${cmd[@]}"
 }
 
 runInstallation() {
 	info "Installing the system"
-	x "$ssh" -t "$kexecConn" nixos-install -v \
+	x ssh -t "$kexecConn" nixos-install -v \
 		--no-channel-copy \
 		--no-root-password \
 		--flake "$config"
 
 	info "Exporting all ZFS pools"
-	x "$ssh" -t "$kexecConn" zpool export -a
+	x ssh -t "$kexecConn" zpool export -a
 
 	((NO_REBOOT)) && return
 
 	info "Rebooting"
-	x "$ssh" -t "$kexecConn" reboot
+	x ssh -t "$kexecConn" reboot
 }
 
 main
