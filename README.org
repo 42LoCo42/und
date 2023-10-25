@@ -43,15 +43,18 @@ a NixOS configuration on any system with SSH and root access and some basic tool
   }
 #+end_src
 
-#+begin_src shell
-  nix run .#test-install # to install (overwrites the old system)
-  nix run .#test # to update a running system
-#+end_src
+Now you can run ~nix run .#test -- <options>~ to install or update your config!
 
-** Options for the installer
-When running a ~<name>-install~ script, you can specify some options:
+** Options for the script
+The following options are available:
+- ~-u, --user~: override the ~user~ option
+- ~-h, --host~: override the ~host~ option
+- ~-p, --preUser~: override the ~preUser~ option
+- ~-k, --kexec~: override the ~kexec~ option
+- ~-l, --local~: target the local system (e.g. use from a NixOS live ISO)
+- ~-i, --install~: install instead of update
 - ~--no-format~: don't format the disks
-- ~--no-kexec~: don't perform the kexec steps (e.g. for when you already have NixOS live system)
+- ~--no-kexec~: don't perform the kexec steps (e.g. when the target is already running NixOS)
 - ~--no-reboot~: don't reboot after the installation has finished
 - ~--save-hwconf <path>~: generate & save a hardware configuration file to ~<path>~.
   The script will then pause to allow further edits and actions.
