@@ -4,61 +4,69 @@ a NixOS configuration on any system with SSH and root access and some basic tool
 
 ** Usage
 #+begin_src nix
-  {
-    inputs = {
-      # the installation uses disko to prepare the disks
-      disko.inputs.nixpkgs.follows = "nixpkgs";
+    {
+      inputs = {
+        # the installation uses disko to prepare the disks
+        disko.inputs.nixpkgs.follows = "nixpkgs";
 
-      und.url = "github:42loco42/und";
-    };
+        und.url = "github:42loco42/und";
+      };
 
-    outputs = { self, nixpkgs, ... }: {
-      apps = self.inputs.und.und self;
-      nixosConfigurations = {
-        test = {
-          system = "x86_64-linux";
-          modules = [
-            ./disk.nix # disko config file
+      outputs = { self, nixpkgs, ... }: {
+        apps = self.inputs.und.und self;
+        nixosConfigurations = {
+          test = {
+            system = "x86_64-linux";
+            modules = [
+              ./disk.nix # disko config file
 
-            self.inputs.disko.nixosModules.disko
+              self.inputs.disko.nixosModules.disko
 
-            {
-              _module.args.und = {
-                host = "example.org";
-                user = "foobar";
+              {
+                _module.args.und = {
+                  host = "example.org";
+                  user = "foobar";
 
-                # set this option if the user on the old system (which will be overwritten)
-                # is different from your normal user
-                # preUser = "barbaz";
+                  # set this option if the user on the old system (which will be overwritten)
+                  # is different from your normal user
+                  # preUser = "barbaz";
 
-                # set this option to use a custom kexec tarbarll URL
-                # otherwise, the default tarball from https://github.com/nix-community/nixos-anywhere will be used
-                # kexec = "https://example.org/other-kexec.tar.gz"
-              };
-            }
-          ];
+                  # set this option to use a custom kexec tarbarll URL
+                  # otherwise, the default tarball for the config's system
+                  # from https://github.com/nix-community/nixos-images will be used
+                  # kexec = "https://example.org/other-kexec.tar.gz"
+                };
+              }
+            ];
+          };
         };
       };
-    };
-  }
+    }
 #+end_src
 
-Now you can run ~nix run .#test -- <options>~ to install or update your config!
+** Modes of operation
+For a configuration named ~test~ (like in the example above),
+these are the primary ways to use the script:
+#+begin_src shell
+  nix run .#test -- -i # installs to the target system
+  nix run .#test       # updates the target system
 
-** Options for the script
-The following options are available:
+  nix run .#test -- -l -i # installs to the local system (e.g. from a NixOS live ISO)
+  nix run .#test -- -l    # updates the local system
+#+end_src
+
+** Other options
+The following options are also available:
 - ~-u, --user~: override the ~user~ option
 - ~-h, --host~: override the ~host~ option
 - ~-p, --preUser~: override the ~preUser~ option
 - ~-k, --kexec~: override the ~kexec~ option
-- ~-l, --local~: target the local system (e.g. use from a NixOS live ISO)
-- ~-i, --install~: install instead of update
-- ~--no-format~: don't format the disks
-- ~--no-kexec~: don't perform the kexec steps (e.g. when the target is already running NixOS)
-- ~--no-reboot~: don't reboot after the installation has finished
+- ~--no-format~: don't format the disks (e.g. to retry a failed installation)
+- ~--no-kexec~: don't perform the kexec steps (e.g. when the target is already running a NixOS live environment)
+- ~--no-reboot~: don't reboot after the installation has finished (e.g. to configure more stuff)
 - ~--save-hwconf <path>~: generate & save a hardware configuration file to ~<path>~.
-  The script will then pause to allow further edits and actions.
+  The script will then pause to allow further edits and actions (e.g. adding the file to ~git~)
 
 ** Notes
-- all builds happen on the remote system to allow installing to different architectures
+- all remote builds happen on the target system to allow installing to different architectures
 - all SSH connections have a PTY, so you can enter passwords
