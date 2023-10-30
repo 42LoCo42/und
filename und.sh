@@ -70,6 +70,7 @@ main() {
 			runInstallation
 		else
 			info "Installing $name on $preConn"
+			x ssh-copy-id "$preConn"
 			runKexec
 			saveHWConf
 			uploadFlake "$preConn"
@@ -157,6 +158,7 @@ runInstallation() {
 	info "Recursively unmounting /mnt"
 	cmd=(umount -Rl /mnt)
 	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+	x "${cmd[@]}"
 
 	info "Exporting all ZFS pools"
 	cmd=(zpool export -a)
