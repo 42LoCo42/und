@@ -154,6 +154,10 @@ runInstallation() {
 	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
 	x "${cmd[@]}"
 
+	info "Recursively unmounting /mnt"
+	cmd=(umount -Rl /mnt)
+	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
+
 	info "Exporting all ZFS pools"
 	cmd=(zpool export -a)
 	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
