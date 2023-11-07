@@ -66,7 +66,8 @@ main() {
 		if ((LOCAL)); then
 			info "Installing $name locally"
 			saveHWConf
-			formatDisks
+			runDisko format
+			runDisko mount
 			runInstallation
 		else
 			info "Installing $name on $preConn"
@@ -74,7 +75,8 @@ main() {
 			runKexec
 			saveHWConf
 			uploadFlake "$preConn"
-			formatDisks
+			runDisko format
+			runDisko mount
 			runInstallation
 		fi
 	else
@@ -133,10 +135,11 @@ uploadFlake() {
 	x nix copy "$flake" --to "ssh://$1"
 }
 
-formatDisks() {
-	((NO_FORMAT)) && return
+runDisko() {
+	mode="$1"
+	[ "$mode" == "format" ] && ((NO_FORMAT)) && return
 
-	info "Formatting disks"
+	info "${mode^}ing disks"
 	cmd=(nix --extra-experimental-features)
 	if ((LOCAL)); then
 		cmd=("${cmd[@]}" "nix-command flakes")
@@ -144,7 +147,7 @@ formatDisks() {
 		# double layer quotation for SSH
 		cmd=("${cmd[@]}" "'nix-command flakes'")
 	fi
-	cmd=("${cmd[@]}" run disko -- -m disko -f "$config")
+	cmd=("${cmd[@]}" run disko -- -m "$mode" -f "$config")
 	((LOCAL)) || cmd=(ssh -t "$kexecConn" "${cmd[@]}")
 	x "${cmd[@]}"
 }
