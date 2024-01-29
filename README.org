@@ -1,6 +1,8 @@
-* und - micro nix deployer
+* µnd - micro nix deployer
 Inspired by [[https://github.com/numtide/nixos-anywhere][nixos-anywhere]] and [[https://github.com/MatthewCroughan/nixinate][nixinate]], this tool enables you to install and update
 a NixOS configuration on any system with SSH and root access and some basic tools.
+
+Rewrite in progress - currently happening in [[https://github.com/42LoCo42/aquaris/blob/main/lib/combined.sh][Aquaris]]!
 
 ** Usage
 #+begin_src nix
